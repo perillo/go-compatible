@@ -23,6 +23,9 @@ import (
 // overridden using the GOSDK environment variable.
 var gosdk string
 
+// Flags.
+var test = flag.Bool("test", false, "test packages")
+
 type release struct {
 	goroot  string
 	version version.Version
@@ -67,18 +70,23 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := run(releases, args); err != nil {
+	if err := run(releases, args, *test); err != nil {
 		log.Fatal(err)
 	}
 }
 
-// run invokes go vet for all the specified releases.
-func run(releases []release, patterns []string) error {
+// run invokes go vet or go test for all the specified releases.
+func run(releases []release, patterns []string, test bool) error {
+	tool := govet
+	if test {
+		tool = gotest
+	}
+
 	nl := []byte("\n")
 	index := 0 // current failed release
 
 	for _, rel := range releases {
-		msg, err := govet(rel, patterns)
+		msg, err := tool(rel, patterns)
 		if err != nil {
 			return err
 		}
@@ -187,10 +195,43 @@ func govet(rel release, patterns []string) ([]byte, error) {
 	return nil, nil
 }
 
-// isFatal returns true if the error returned by go vet is fatal.
+// gotests invokes go test on the packages named by the given patterns, for the
+// specified release.  It returns the diagnostic message and a non nil error,
+// in case of a fatal error like go command not found or incorrect command line
+// arguments.
+//
+// For older versions go test report more errors compared to go vet.
+func gotest(rel release, patterns []string) ([]byte, error) {
+	gocmd := filepath.Join(rel.goroot, "bin", "go")
+	args := append([]string{"test"}, patterns...)
+	cmd := exec.Command(gocmd, args...)
+	cmd.Env = append(os.Environ(), "GOROOT="+rel.goroot)
+
+	if err := invoke.Run(cmd); err != nil {
+		cmderr := err.(*invoke.Error)
+
+		// Determine the error type to decide if there was a fatal problem
+		// with the invocation of go test that requires the termination of
+		// the program.
+		switch cmderr.Err.(type) {
+		case *exec.Error:
+			return nil, err
+		case *exec.ExitError:
+			if isFatal(cmderr) {
+				return nil, err
+			}
+
+			return cmderr.Stderr, nil
+		}
+	}
+
+	return nil, nil
+}
+
+// isFatal returns true if the error returned by go vet or go test is fatal.
 func isFatal(err *invoke.Error) bool {
-	// In case of build constraints excluding all Go files, go vet returns
-	// exit status 1 and the error message starts with "package".
+	// In case of build constraints excluding all Go files, go returns exit
+	// status 1 and the error message starts with "package".
 	//
 	// TODO(mperillo): all Go files excluded due to build constraints is
 	// probably a fatal error.
@@ -198,8 +239,8 @@ func isFatal(err *invoke.Error) bool {
 		return false
 	}
 
-	// In case of syntax errors, go vet returns exit status 2 and the error
-	// message starts with # and the package name.
+	// In case of syntax errors, go returns exit status 2 and the error message
+	// starts with # and the package name.
 	if err.Stderr[0] == '#' {
 		return false
 	}
