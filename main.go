@@ -5,7 +5,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"log"
@@ -164,8 +163,7 @@ func goversion(goroot string) (string, error) {
 
 // govet invokes go vet on the packages named by the given patterns, for the
 // specified release.  It returns the diagnostic message and a non nil error,
-// in case of a fatal error like go command not found or incorrect command line
-// arguments.
+// in case of a fatal error like go command not found.
 func govet(rel release, patterns []string) ([]byte, error) {
 	// TODO(mperillo): go1.4 does not have the go vet tool;  report an useful
 	// error if the user has not installed it.
@@ -184,10 +182,6 @@ func govet(rel release, patterns []string) ([]byte, error) {
 		case *exec.Error:
 			return nil, err
 		case *exec.ExitError:
-			if isFatal(cmderr) {
-				return nil, err
-			}
-
 			return cmderr.Stderr, nil
 		}
 	}
@@ -197,8 +191,7 @@ func govet(rel release, patterns []string) ([]byte, error) {
 
 // gotests invokes go test on the packages named by the given patterns, for the
 // specified release.  It returns the diagnostic message and a non nil error,
-// in case of a fatal error like go command not found or incorrect command line
-// arguments.
+// in case of a fatal error like go command not found.
 //
 // For older versions go test report more errors compared to go vet.
 func gotest(rel release, patterns []string) ([]byte, error) {
@@ -217,33 +210,9 @@ func gotest(rel release, patterns []string) ([]byte, error) {
 		case *exec.Error:
 			return nil, err
 		case *exec.ExitError:
-			if isFatal(cmderr) {
-				return nil, err
-			}
-
 			return cmderr.Stderr, nil
 		}
 	}
 
 	return nil, nil
-}
-
-// isFatal returns true if the error returned by go vet or go test is fatal.
-func isFatal(err *invoke.Error) bool {
-	// In case of build constraints excluding all Go files, go returns exit
-	// status 1 and the error message starts with "package".
-	//
-	// TODO(mperillo): all Go files excluded due to build constraints is
-	// probably a fatal error.
-	if bytes.HasPrefix(err.Stderr, []byte("package")) {
-		return false
-	}
-
-	// In case of syntax errors, go returns exit status 2 and the error message
-	// starts with # and the package name.
-	if err.Stderr[0] == '#' {
-		return false
-	}
-
-	return false
 }
