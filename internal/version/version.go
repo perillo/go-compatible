@@ -50,6 +50,9 @@ func Parse(version string) (v Version, err error) {
 	// go1.17-3f4977bd58
 	//
 	// Note that "-" is considered part of the pre-release.
+	if !strings.HasPrefix(version, "go") {
+		return v, fmt.Errorf("parse: version does not have the \"go\" prefix")
+	}
 	version = version[2:] // strip the "go" prefix
 
 	r := regex.FindAllStringSubmatch(version, -1)
