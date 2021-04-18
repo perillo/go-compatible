@@ -184,6 +184,8 @@ func govet(rel release, patterns []string) ([]byte, error) {
 		case *exec.ExitError:
 			return cmderr.Stderr, nil
 		}
+
+		return nil, err // should not be reached
 	}
 
 	return nil, nil
@@ -212,6 +214,8 @@ func gotest(rel release, patterns []string) ([]byte, error) {
 		case *exec.ExitError:
 			return cmderr.Stderr, nil
 		}
+
+		return nil, err // should not be reached
 	}
 
 	return nil, nil
