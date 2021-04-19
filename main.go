@@ -203,7 +203,7 @@ func govet(rel release, patterns []string) ([]byte, error) {
 	return nil, nil
 }
 
-// gotests invokes go test on the packages named by the given patterns, for the
+// gotest invokes go test on the packages named by the given patterns, for the
 // specified release.  It returns the diagnostic message and a non nil error,
 // in case of a fatal error like go command not found.
 //
