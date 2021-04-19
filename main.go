@@ -24,8 +24,8 @@ var gosdk string
 
 // Flags.
 var (
-	test  = flag.Bool("test", false, "test packages")
 	since version.Version
+	test  = flag.Bool("test", false, "test packages")
 )
 
 type release struct {
@@ -64,8 +64,8 @@ func main() {
 	// Parse command line.
 	flag.Usage = func() {
 		w := flag.CommandLine.Output()
-		fmt.Fprintln(w, "Usage: go-compatible [flags] packages")
-		fmt.Fprintf(w, "Flags:\n")
+		fmt.Fprintln(w, "Usage: go-compatible [-since] [-test] [packages]")
+		fmt.Fprintln(w, "Options:")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
