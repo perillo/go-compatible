@@ -121,6 +121,17 @@ func (v Version) String() string {
 	return s
 }
 
+// Set implements the Value interface.
+func (v *Version) Set(s string) error {
+	w, err := Parse(s)
+	if err != nil {
+		return err
+	}
+	*v = w
+
+	return nil
+}
+
 // intcmp compares two integers.
 func intcmp(a, b int) int {
 	switch {

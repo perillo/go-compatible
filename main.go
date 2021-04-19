@@ -23,7 +23,10 @@ import (
 var gosdk string
 
 // Flags.
-var test = flag.Bool("test", false, "test packages")
+var (
+	test  = flag.Bool("test", false, "test packages")
+	since version.Version
+)
 
 type release struct {
 	goroot  string
@@ -32,6 +35,10 @@ type release struct {
 
 func (r release) String() string {
 	return "go" + r.version.String()
+}
+
+func init() {
+	flag.Var(&since, "since", "use only releases more recent than a specific version")
 }
 
 func init() {
@@ -64,7 +71,7 @@ func main() {
 	flag.Parse()
 	args := flag.Args()
 
-	releases, err := gosdklist()
+	releases, err := gosdklist(since)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -107,8 +114,9 @@ func run(releases []release, patterns []string, test bool) error {
 	return nil
 }
 
-// gosdklist returns a list of all go releases in the sdk.
-func gosdklist() ([]release, error) {
+// gosdklist returns a list of all go releases in the sdk more recent than the
+// specified version.
+func gosdklist(since version.Version) ([]release, error) {
 	list := make([]release, 0, 32) // preallocate memory
 	files, err := os.ReadDir(gosdk)
 	if err != nil {
@@ -125,6 +133,10 @@ func gosdklist() ([]release, error) {
 			version, err := version.ParseLine(line)
 			if err != nil {
 				return nil, err
+			}
+
+			if version.Less(since) {
+				continue
 			}
 
 			rel := release{
