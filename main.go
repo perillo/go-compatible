@@ -5,6 +5,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"log"
@@ -100,7 +101,7 @@ func run(releases []release, patterns []string, test bool) error {
 			continue
 		}
 
-		// Print go vet diagnostic message.
+		// Print go vet diagnostic message or go test report
 		if index > 0 {
 			os.Stderr.Write(nl)
 		}
@@ -204,8 +205,8 @@ func govet(rel release, patterns []string) ([]byte, error) {
 }
 
 // gotest invokes go test on the packages named by the given patterns, for the
-// specified release.  It returns the diagnostic message and a non nil error,
-// in case of a fatal error like go command not found.
+// specified release.  It returns the test report and a non nil error, in case
+// of a fatal error like go command not found.
 //
 // For older versions go test report more errors compared to go vet.
 func gotest(rel release, patterns []string) ([]byte, error) {
@@ -214,17 +215,17 @@ func gotest(rel release, patterns []string) ([]byte, error) {
 	cmd := exec.Command(gocmd, args...)
 	cmd.Env = append(os.Environ(), "GOROOT="+rel.goroot)
 
-	if err := invoke.Run(cmd); err != nil {
-		cmderr := err.(*invoke.Error)
-
+	// go test writes the go vet diagnostic on stderr and the test report on
+	// stdout.
+	if data, err := cmd.CombinedOutput(); err != nil {
 		// Determine the error type to decide if there was a fatal problem
 		// with the invocation of go test that requires the termination of
 		// the program.
-		switch cmderr.Err.(type) {
+		switch err.(type) {
 		case *exec.Error:
 			return nil, err
 		case *exec.ExitError:
-			return cmderr.Stderr, nil
+			return bytes.TrimSpace(data), nil
 		}
 
 		return nil, err // should not be reached
