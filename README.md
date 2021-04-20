@@ -27,7 +27,7 @@ the `go` command and therefore also supports relative import paths like
 `./...`. Additionally the `...` wildcard can be used as suffix on relative and
 absolute file paths to recurse into them.
 
-The `-since` option causes the tool to only use releases more recent then the
+The `-since` option causes the tool to only use releases more recent than the
 specified version.
 
 When the `-test` option is set, the tool invokes `go test` instead of `go vet`.
