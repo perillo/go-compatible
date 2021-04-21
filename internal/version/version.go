@@ -13,7 +13,7 @@ import (
 )
 
 // regex is based on the semver regex from https://regex101.com/r/Ly7O1x/3/.
-var regex = regexp.MustCompile(`^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)(?:\.(?P<patch>0|[1-9]\d*))?(?P<prerelease>.*)$`)
+var regex = regexp.MustCompile(`^(?P<major>[1-9]\d*)\.(?P<minor>0|[1-9]\d*)(?:\.(?P<patch>0|[1-9]\d*))?(?P<prerelease>.*)$`)
 
 // Version represents a Go version.
 type Version struct {
