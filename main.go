@@ -25,8 +25,8 @@ var gosdk string
 
 // Flags.
 var (
-	since version.Version
-	test  = flag.Bool("test", false, "test packages")
+	action = flag.String("mode", "vet", "verification mode (test or vet)")
+	since  version.Version
 )
 
 type release struct {
@@ -71,21 +71,30 @@ func main() {
 	}
 	flag.Parse()
 	args := flag.Args()
+	switch *action {
+	case "vet", "test":
+	default:
+		const err = "must be \"test\" or \"vet\""
+		fmt.Fprintf(os.Stderr, "invalid value %q for flag -mode: %s\n", *action, err)
+		flag.Usage()
+
+		os.Exit(2)
+	}
 
 	releases, err := gosdklist(since)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := run(releases, args, *test); err != nil {
+	if err := run(releases, args, *action); err != nil {
 		log.Fatal(err)
 	}
 }
 
 // run invokes go vet or go test for all the specified releases.
-func run(releases []release, patterns []string, test bool) error {
+func run(releases []release, patterns []string, action string) error {
 	tool := govet
-	if test {
+	if action == "test" {
 		tool = gotest
 	}
 
