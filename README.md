@@ -31,3 +31,7 @@ The `-since` option causes the tool to only use releases more recent than the
 specified version.
 
 When the `-test` option is set, the tool invokes `go test` instead of `go vet`.
+
+By default, `go-compatible` searches the available releases in the `~/sdk`
+directory, but it is possible to specify a different directory using the
+`GOSDK` environment variable.
