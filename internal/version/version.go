@@ -121,6 +121,16 @@ func (v Version) String() string {
 	return s
 }
 
+// Must is a helper that wraps a call to a function returning (Version, error)
+// and panics if the error is non-nil.
+func Must(v Version, err error) Version {
+	if err != nil {
+		panic(err)
+	}
+
+	return v
+}
+
 // Set implements the Value interface.
 func (v *Version) Set(s string) error {
 	w, err := Parse(s)

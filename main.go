@@ -25,7 +25,7 @@ var gosdk string
 
 // Flags.
 var (
-	action = flag.String("mode", "vet", "verification mode (test or vet)")
+	action = flag.String("mode", "vet", "verification mode (vet, build or test)")
 	since  version.Version
 )
 
@@ -72,9 +72,9 @@ func main() {
 	flag.Parse()
 	args := flag.Args()
 	switch *action {
-	case "vet", "test":
+	case "vet", "build", "test":
 	default:
-		const err = "must be \"test\" or \"vet\""
+		const err = "must be \"vet\", \"build\" or \"test\""
 		fmt.Fprintf(os.Stderr, "invalid value %q for flag -mode: %s\n", *action, err)
 		flag.Usage()
 
@@ -94,7 +94,10 @@ func main() {
 // run invokes go vet or go test for all the specified releases.
 func run(releases []release, patterns []string, action string) error {
 	tool := govet
-	if action == "test" {
+	switch action {
+	case "build":
+		tool = gobuild
+	case "test":
 		tool = gotest
 	}
 
@@ -199,6 +202,49 @@ func govet(rel release, patterns []string) ([]byte, error) {
 
 		// Determine the error type to decide if there was a fatal problem
 		// with the invocation of go vet that requires the termination of
+		// the program.
+		switch cmderr.Err.(type) {
+		case *exec.Error:
+			return nil, err
+		case *exec.ExitError:
+			return cmderr.Stderr, nil
+		}
+
+		return nil, err // should not be reached
+	}
+
+	return nil, nil
+}
+
+var go18 = version.Must(version.Parse("go1.8"))
+
+// gobuild invokes go build on the packages named by the given patterns, for
+// the specified release.  It returns the diagnostic message and a non nil
+// error, in case of a fatal error like go command not found.
+func gobuild(rel release, patterns []string) ([]byte, error) {
+	gocmd := filepath.Join(rel.goroot, "bin", "go")
+	var args = []string{"build"}
+
+	if rel.version.Less(go18) {
+		// Invoke `go build [packages]`.
+		// It is not the default choice because, in case patterns match a
+		// single main package, go build will write the generated binary in the
+		// current directory.
+		args = append(args, patterns...)
+	} else {
+		// Invoke `go build -o /dev/null [packages]`.
+		// Note that this is not documented.
+		args := append(args, "-o", os.DevNull)
+		args = append(args, patterns...)
+	}
+	cmd := exec.Command(gocmd, args...)
+	cmd.Env = append(os.Environ(), "GOROOT="+rel.goroot)
+
+	if err := invoke.Run(cmd); err != nil {
+		cmderr := err.(*invoke.Error)
+
+		// Determine the error type to decide if there was a fatal problem
+		// with the invocation of go build that requires the termination of
 		// the program.
 		switch cmderr.Err.(type) {
 		case *exec.Error:
