@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// go-compatibile checks if a package is compatible with older versions of Go.
+//
+// Internally, it invokes `go vet`, `go build` or `go test` on all the
+// available releases installed on the system.
 package main
 
 import (
