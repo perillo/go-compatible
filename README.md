@@ -11,7 +11,7 @@ go-compatible requires [Go 1.16](https://golang.org/doc/devel/release.html#go1.1
 ## Purpose
 
 go-compatibile checks if a package is compatible with older versions of Go.
-Internally, it invokes `go vet` on all the
+Internally, it invokes `go vet`, `go build` or `go test` on all the
 [available releases](https://pkg.go.dev/golang.org/dl) installed on the system.
 
 The output of this tool reports problems for each release that a package does
@@ -19,7 +19,7 @@ not support.
 
 ## Usage
 
-    go-compatible [-since goversion] [-test] [packages]
+    go-compatible [-since goversion] [-mode mode] [packages]
 
 Invoke `go-compatible` with one or more import paths.  go-compatible uses the
 same [import path syntax](https://golang.org/cmd/go/#hdr-Import_path_syntax) as
@@ -30,7 +30,8 @@ absolute file paths to recurse into them.
 The `-since` option causes the tool to only use releases more recent than the
 specified version.
 
-When the `-test` option is set, the tool invokes `go test` instead of `go vet`.
+The `-mode` option allows the user to specify how to verify compatibility.  It
+can be set to `vet`, `build` or `test`, with `vet` being the default.
 
 By default, `go-compatible` searches the available releases in the `~/sdk`
 directory, but it is possible to specify a different directory using the
