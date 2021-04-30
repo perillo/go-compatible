@@ -65,7 +65,7 @@ func main() {
 	// Parse command line.
 	flag.Usage = func() {
 		w := flag.CommandLine.Output()
-		fmt.Fprintln(w, "Usage: go-compatible [-since goversion] [-test] [packages]")
+		fmt.Fprintln(w, "Usage: go-compatible [-since goversion] [-mode mode] [packages]")
 		fmt.Fprintln(w, "Options:")
 		flag.PrintDefaults()
 	}
