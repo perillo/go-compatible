@@ -19,7 +19,7 @@ not support.
 
 ## Usage
 
-    go-compatible [-since goversion] [-mode mode] [packages]
+    go-compatible [-mode mode] [-since goversion] [packages]
 
 Invoke `go-compatible` with one or more import paths.  go-compatible uses the
 same [import path syntax](https://golang.org/cmd/go/#hdr-Import_path_syntax) as
