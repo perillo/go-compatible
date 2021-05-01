@@ -1,16 +1,16 @@
 # go-compatible is a compatibility checker for Go packages.
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/perillo/go-compatibile.svg)](https://pkg.go.dev/github.com/perillo/go-compatibile)
+[![Go Reference](https://pkg.go.dev/badge/github.com/perillo/go-compatible.svg)](https://pkg.go.dev/github.com/perillo/go-compatible)
 
 ## Installation
 
 go-compatible requires [Go 1.16](https://golang.org/doc/devel/release.html#go1.16).
 
-    go install github.com/perillo/go-compatibile@latest
+    go install github.com/perillo/go-compatible@latest
 
 ## Purpose
 
-go-compatibile checks if a package is compatible with older versions of Go.
+go-compatible checks if a package is compatible with older versions of Go.
 Internally, it invokes `go vet`, `go build` or `go test` on all the
 [available releases](https://pkg.go.dev/golang.org/dl) installed on the system.
 
